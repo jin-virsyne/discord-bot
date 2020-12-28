@@ -233,6 +233,17 @@ python-versions = ">=3.5"
 dev = ["pytest (>=4.6.2)", "black (>=19.3b0)"]
 
 [[package]]
+name = "yamale"
+version = "3.0.4"
+description = "A schema and validator for YAML."
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+pyyaml = "*"
+
+[[package]]
 name = "yarl"
 version = "1.5.1"
 description = "Yet another URL library"
@@ -248,7 +259,7 @@ typing-extensions = {version = ">=3.7.4", markers = "python_version < \"3.8\""}
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7"
-content-hash = "c2873bacf126cb34c97695cb9f90f6c61694ae6d87495d87403bbd4e682e2ca1"
+content-hash = "29b87887d7b2bf8cee08810f290eaa509f9c0eb2271ee19b9426cbf652ec8441"
 
 [metadata.files]
 aiohttp = [
@@ -446,6 +457,9 @@ typing-extensions = [
 win32-setctime = [
     {file = "win32_setctime-1.0.3-py3-none-any.whl", hash = "sha256:dc925662de0a6eb987f0b01f599c01a8236cb8c62831c22d9cada09ad958243e"},
     {file = "win32_setctime-1.0.3.tar.gz", hash = "sha256:4e88556c32fdf47f64165a2180ba4552f8bb32c1103a2fafd05723a0bd42bd4b"},
+]
+yamale = [
+    {file = "yamale-3.0.4.tar.gz", hash = "sha256:bec53aa08e29c26a9a47c0f5d5cb5632e7ac8aff619a4727acfe490042c83a5f"},
 ]
 yarl = [
     {file = "yarl-1.5.1-cp35-cp35m-macosx_10_14_x86_64.whl", hash = "sha256:db6db0f45d2c63ddb1a9d18d1b9b22f308e52c83638c26b422d520a815c4b3fb"},
