@@ -2,13 +2,16 @@
 import asyncio
 import dataclasses
 import os
+import time
 from typing import Dict, List, Tuple
 
+import aiohttp
 import discord
 import dotenv
 import emojis
 import palettable
 import yamale
+import yaml
 from loguru import logger
 
 dotenv.load_dotenv()
@@ -29,12 +32,11 @@ ROLE_NOTE = (
     "You do not need to re-select roles to keep them."
 )
 SINGLE_ROLE_MENU = (
-    "_ _\n"
     "**Note:** You can only pick a single option from this list. "
     "Choosing a new one will remove all the others from your profile."
 )
 OAUTH_PERMISSIONS = 268511296
-OAUTH_URL = "https://discord.com/api/oauth2/authorize?client_id=791831545475235860&permissions=268511296&scope=bot"
+OAUTH_URL = f"https://discord.com/api/oauth2/authorize?client_id=791831545475235860&permissions={OAUTH_PERMISSIONS}&scope=bot"
 
 
 def list_int() -> List[int]:
@@ -57,6 +59,13 @@ def emoji_from_partial(partial: discord.PartialEmoji):
     else:
         emoji_name = emojis.decode(partial.name).strip(":")
     return emoji_name
+
+
+@dataclasses.dataclass
+class ConfigMeta:
+    url: str
+    size: int
+    last: int
 
 
 @dataclasses.dataclass
@@ -87,6 +96,7 @@ class GuildInfo:
     id: int
     name: str
     guild: discord.Guild = None
+    meta: ConfigMeta = None
     role_channel: discord.TextChannel = None
     config_errors: List[str] = dataclasses.field(default_factory=list)
     emoji: Dict[str, discord.Emoji] = dataclasses.field(default_factory=dict)
@@ -113,6 +123,64 @@ class GuildInfo:
                 return menu
         return None
 
+    def load_emoji(self):
+        self.emoji = {}
+        # Load the emojis!
+        # for emoji in self.emojis:
+        #     logger.debug("--Client Emoji: {}", emoji.name)
+        #     gi.emoji[emoji.name] = emoji
+        for emoji in self.guild.emojis:
+            logger.debug("Guild has a custom Emoji: {}", emoji.name)
+            self.emoji[emoji.name] = emoji
+
+    def load_roles(self, data, guild: discord.Guild):
+
+        if "new_member_role" in data:
+            self.new_member_role = discord.utils.get(
+                guild.roles, name=data["new_member_role"]
+            )
+
+        # If no role channels, then we are done.
+        if "role_channel" not in data:
+            return
+
+        logger.debug("This guild uses a role channel.")
+        self.role_channel = discord.utils.get(
+            guild.text_channels, name=data["role_channel"]
+        )
+        for menu in data["menus"]:
+            mi = RoleMenu(
+                name=menu["name"],
+                description=menu.get("description", ""),
+                single=menu.get("single", False),
+            )
+            self.menus.append(mi)
+            for option in menu["options"]:
+                role = discord.utils.get(guild.roles, name=option["role"])
+                emoji = self.get_emoji(option["emoji"])
+                if not role:
+                    self.config_errors.append(
+                        "The role '{}' (from menu {}) doesn't appear to exist.".format(
+                            option["role"], mi.name
+                        )
+                    )
+                    continue
+                if not emoji:
+                    self.config_errors.append(
+                        "The emoji '{}' (from menu {}) doesn't appear to exist.".format(
+                            option["emoji"], mi.name
+                        )
+                    )
+                    continue
+                mi.options.append(
+                    RoleMenuOption(
+                        role_name=option["role"],
+                        role=role,
+                        description=option.get("description", ""),
+                        emoji=option["emoji"],
+                    )
+                )
+
     @classmethod
     async def from_config(cls, guild):
         gi = cls(
@@ -124,7 +192,12 @@ class GuildInfo:
         )
 
         logger.info("Loading config for guild: {}", guild)
-        data = yamale.make_data(str(guild.id) + ".yaml")
+        try:
+            data = yamale.make_data(f"data/{guild.id}.yaml")
+        except yaml.scanner.ScannerError as e:
+            gi.config_errors.append(str(e))
+            return gi
+
         try:
             yamale.validate(SCHEMA, data)
         except yamale.YamaleError as e:
@@ -138,56 +211,11 @@ class GuildInfo:
         # Yamale nests.
         data = data[0][0]
 
-        # Load the emojis!
-        # for emoji in self.emojis:
-        #     logger.debug("--Client Emoji: {}", emoji.name)
-        #     gi.emoji[emoji.name] = emoji
-        for emoji in guild.emojis:
-            logger.debug("Guild has a custom Emoji: {}", emoji.name)
-            gi.emoji[emoji.name] = emoji
+        if "meta" in data:
+            gi.meta = ConfigMeta(**data["meta"])
 
-        if "role_channel" in data:
-            logger.debug("This guild uses a role channel.")
-            gi.role_channel = discord.utils.get(
-                guild.text_channels, name=data["role_channel"]
-            )
-            for menu in data["menus"]:
-                mi = RoleMenu(
-                    name=menu["name"],
-                    description=menu.get("description", ""),
-                    single=menu.get("single", False),
-                )
-                gi.menus.append(mi)
-                for option in menu["options"]:
-                    role = discord.utils.get(guild.roles, name=option["role"])
-                    emoji = gi.get_emoji(option["emoji"])
-                    if not role:
-                        gi.config_errors.append(
-                            "The role '{}' (from menu {}) doesn't appear to exist.".format(
-                                option["role"], mi.name
-                            )
-                        )
-                        continue
-                    if not emoji:
-                        gi.config_errors.append(
-                            "The emoji '{}' (from menu {}) doesn't appear to exist.".format(
-                                option["emoji"], mi.name
-                            )
-                        )
-                        continue
-                    mi.options.append(
-                        RoleMenuOption(
-                            role_name=option["role"],
-                            role=role,
-                            description=option.get("description", ""),
-                            emoji=option["emoji"],
-                        )
-                    )
-
-        if "new_member_role" in data:
-            gi.new_member_role = discord.utils.get(
-                guild.roles, name=data["new_member_role"]
-            )
+        gi.load_emoji()
+        gi.load_roles(data, guild)
 
         logger.debug("Done loading.")
         return gi
@@ -210,7 +238,7 @@ class AshBot(discord.Client):
         """Post-initalization for the bot."""
         logger.info(f"{self.user} has connected to Discord!")
         for guild in self.guilds:
-            await self.setup_guild(guild)
+            await self.update_guild_config(guild)
 
     async def on_member_join(self, member: discord.Member):
         """Handle members joining."""
@@ -218,12 +246,12 @@ class AshBot(discord.Client):
         if c.new_member_role:
             await member.add_roles(roles=c.new_member_role)
 
-    async def send_error(self, member: discord.Member, message: str):
-        """Tell someone that something went wrong."""
-        await member.create_dm()
-        await member.dm_channel.send(message)
+    # async def send_error(self, member: discord.Member, message: str):
+    #     """Tell someone that something went wrong."""
+    #     await member.create_dm()
+    #     await member.dm_channel.send(message)
 
-    async def setup_guild(self, guild):
+    async def update_guild_config(self, guild, errors_to=None):
         """Load the config for a guild and start setting up everything there."""
 
         # Load the config.
@@ -235,17 +263,74 @@ class AshBot(discord.Client):
         # Cache for later
         self.cache[gi.id] = gi
 
+    async def configure_guild(self, guild, errors_to=None):
+
+        c = self.cache[guild.id]
+
         # Start setting up the guild
-        if gi.role_channel:
+        if c.role_channel:
             await self.setup_roles(guild)
 
-        if gi.config_errors:
+        # This happens atfer the setup_roles, else the messages here get deleted by that.
+        if c.config_errors:
             await self.report_errors(
-                guild, title="Config errors", errors=gi.config_errors
+                guild, title="Config errors", errors=c.config_errors, to=errors_to
             )
 
-    # async def on_message(self, message):
-    #     logger.debug(f"New message: {message}")
+    async def on_message(self, message: discord.Message):
+        if message.author == self.user:
+            return
+
+        if not message.content.startswith("$config"):
+            return
+
+        # Ignore DMs
+        if not message.guild:
+            return
+
+        # await message.channel.send("Hello!")
+
+        c = self.cache[message.guild.id]
+
+        cmd = message.content.split()
+        if len(cmd) == 2:
+            url = cmd[1]
+            await message.channel.send(
+                f"Loading config from new URL: {url}", delete_after=20
+            )
+            try:
+                await self.get_config(message.guild, url)
+            except aiohttp.client_exceptions.ClientResponseError as e:
+                await self.report_errors(
+                    guild=message.guild,
+                    title="Error downloading config",
+                    errors=[str(e)],
+                    to=message.channel,
+                    emoji="poop",
+                )
+                return
+        else:
+            await message.channel.send(
+                f"Loading config from prior URL: {c.meta.url}", delete_after=20
+            )
+            await self.get_config(message.guild, c.meta.url)
+
+        await self.update_guild_config(message.guild, errors_to=message.channel)
+        await self.configure_guild(message.guild, errors_to=message.channel)
+        await message.delete()
+
+    async def get_config(self, guild: discord.Guild, url: str):
+        logger.info("Grabbing new config from: {}", url)
+
+        text = await self.get_text(url)
+        data = yaml.load(text, Loader=yaml.Loader)
+        if not text:
+            return
+        logger.debug("Found {}b of text", len(text))
+        data["meta"] = {"url": url, "size": len(text), "last": int(time.time())}
+        with open(f"data/{guild.id}.yaml", "w") as conf:
+            yaml.dump(data, stream=conf)
+        return
 
     async def on_raw_reaction_remove(self, payload: discord.RawReactionActionEvent):
         """Process a possible request for role removal."""
@@ -264,7 +349,7 @@ class AshBot(discord.Client):
             logger.warning("Unknown emoji... Don't care that it is gone...")
             return
 
-        logger.info("And this emoji maps to the role: {}", option.role_name)
+        logger.debug("And this emoji maps to the role: {}", option.role_name)
         if not option.role:
             logger.warning("Role isn't known on this server.")
             return
@@ -287,6 +372,7 @@ class AshBot(discord.Client):
                     "please check my permissions relative to that role."
                 ],
                 emoji="exploding_head",
+                to=c.role_channel,
             )
 
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
@@ -309,19 +395,20 @@ class AshBot(discord.Client):
                 payload.channel_id, payload.message_id, option, payload.user_id
             )
 
-        logger.info("And this emoji maps to the role: {}", option.role_name)
+        logger.debug("And this emoji maps to the role: {}", option.role_name)
         if not option.role:
             logger.warning("Role isn't known on this server.")
             return
 
-        logger.info("Adding role {} to {}", option.role, payload.member)
+        nick = payload.member.nick or payload.member.name
+        logger.info("Adding role {} to {}", option.role, nick)
         try:
             await payload.member.add_roles(
                 option.role, reason="Member clicked on role menu"
             )
         except discord.errors.Forbidden:
             logger.error("Unable to set role, got Forbidden: {}", option.role)
-            await self.role_error(
+            await self.report_errors(
                 c.guild,
                 title="Error adding role",
                 errors=[
@@ -329,6 +416,7 @@ class AshBot(discord.Client):
                     "please check my permissions relative to that role."
                 ],
                 emoji="exploding_head",
+                to=c.role_channel,
             )
             return
 
@@ -347,8 +435,9 @@ class AshBot(discord.Client):
                 ],
             )
 
-    # async def on_guild_emojis_update(self, guild, before, after):
-    #     pass
+    async def on_guild_emojis_update(self, guild, before, after):
+        """Reload all the emoji."""
+        self.cache[guild.id].load_emoji()
 
     def where_to_complain(self, guild):
         c = self.cache[guild.id]
@@ -361,11 +450,13 @@ class AshBot(discord.Client):
 
         return guild.owner
 
-    async def report_errors(self, guild, title, errors, emoji=None):
+    async def report_errors(self, guild, title, errors, emoji=None, to=None):
         """Dump all the config errors somewhere, where hopefully they get seen."""
         c = self.cache[guild.id]
 
-        to = self.where_to_complain(guild)
+        if not to:
+            to = self.where_to_complain(guild)
+
         for error in errors:
             embed = discord.Embed(
                 color=discord.Color.dark_red(),
@@ -403,7 +494,10 @@ class AshBot(discord.Client):
             )
             if menu.single:
                 embed.title += " (Pick 1)"
-                embed.description += SINGLE_ROLE_MENU
+                if embed.description:
+                    embed.description += "\n_ _\n" + SINGLE_ROLE_MENU
+                else:
+                    embed.description = SINGLE_ROLE_MENU
 
             for o in menu.options:
                 e = c.get_emoji(o.emoji)
@@ -426,11 +520,23 @@ class AshBot(discord.Client):
                 await message.add_reaction(e)
         await c.role_channel.send(content=ROLE_NOTE)
 
+    async def get_json(self, url):
+        async with aiohttp.ClientSession(raise_for_status=True) as session:
+            async with session.get(url) as r:
+                if r.status == 200:
+                    return await r.json()
 
-intents = discord.Intents.default()
-intents.guilds = True
-intents.reactions = True
-intents.messages = True
-intents.emojis = True
-client = AshBot(intents=intents)
-client.run(TOKEN)
+    async def get_text(self, url):
+        async with aiohttp.ClientSession(raise_for_status=True) as session:
+            async with session.get(url) as r:
+                return await r.text()
+
+
+if __name__ == "__main__":
+    intents = discord.Intents.default()
+    intents.guilds = True
+    intents.reactions = True
+    intents.messages = True
+    intents.emojis = True
+    client = AshBot(intents=intents)
+    client.run(TOKEN)

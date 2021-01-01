@@ -1,6 +1,7 @@
 menus: list(include('menu'))
 role_channel: str(required=False)
 new_member_role: str(required=False)
+meta: include('meta', required=False)
 ---
 menu:
   name: str()
@@ -12,3 +13,8 @@ options:
   emoji: str()
   role: str()
   description: str()
+
+meta:
+  last: int()
+  url: str()
+  size: int()
