@@ -1,4 +1,7 @@
-#!/bin/sh
-scriptDir=$(dirname -- "$(readlink -f -- "$BASH_SOURCE")")
-cd ${scriptDir}/bot
-exec python ${scriptDir}/bot/main.py
+#!/bin/bash
+DIR=$( dirname "$0" )
+echo "Dir: ${DIR}"
+
+source $HOME/.poetry/env
+cd $DIR/..
+exec poetry run python ${DIR}/../bot/main.py
