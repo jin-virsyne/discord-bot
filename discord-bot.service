@@ -1,0 +1,13 @@
+[Unit]
+Description="Dragonpaw Discord Bot"
+After=network.target
+
+[Service]
+User=bot
+Group=bot
+Environment=LANG=en_US.UTF-8,LC_ALL=en_US.UTF-8
+ExecStart=/home/bot/app/bin/start
+Restart=always 
+
+[Install]
+WantedBy=multi-user.target

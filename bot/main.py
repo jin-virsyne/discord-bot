@@ -3,6 +3,7 @@ import asyncio
 import dataclasses
 import os
 import time
+from pathlib import Path
 from typing import Dict, List, Tuple
 
 import aiohttp
@@ -14,10 +15,13 @@ import yamale
 import yaml
 from loguru import logger
 
-dotenv.load_dotenv()
+ROOT_DIR = Path(__file__).resolve().parent.parent
+
+dotenv.load_dotenv(ROOT_DIR / ".env")
+
 TOKEN = os.getenv("DISCORD_TOKEN")
 COLORS = "Cube1_{}"  # https://jiffyclub.github.io/palettable/
-SCHEMA = yamale.make_schema("./schema.yaml")
+SCHEMA = yamale.make_schema(ROOT_DIR / "bot/schema.yaml")
 VALIDATION_ERROR = (
     "The config for this server failed to pass validation. Below are the errors. "
     "(Please be aware, programmers start counting at 0, so `menus.1.description` "
@@ -193,7 +197,7 @@ class GuildInfo:
 
         logger.info("Loading config for guild: {}", guild)
         try:
-            data = yamale.make_data(f"data/{guild.id}.yaml")
+            data = yamale.make_data(ROOT_DIR / f"data/{guild.id}.yaml")
         except yaml.scanner.ScannerError as e:
             gi.config_errors.append(str(e))
             return gi
@@ -239,6 +243,7 @@ class AshBot(discord.Client):
         logger.info(f"{self.user} has connected to Discord!")
         for guild in self.guilds:
             await self.update_guild_config(guild)
+            await self.configure_guild(guild)
 
     async def on_member_join(self, member: discord.Member):
         """Handle members joining."""

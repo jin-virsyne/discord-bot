@@ -1,0 +1,4 @@
+#!/bin/sh
+scriptDir=$(dirname -- "$(readlink -f -- "$BASH_SOURCE")")
+cd ${scriptDir}/bot
+exec python ${scriptDir}/bot/main.py
