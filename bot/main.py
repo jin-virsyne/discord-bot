@@ -447,12 +447,15 @@ class AshBot(discord.Client):
     def where_to_complain(self, guild):
         c = self.cache[guild.id]
         if c.role_channel:
+            logger.debug("Complaining to role channel.")
             return c.role_channel
 
         log_channel = discord.utils.get(guild.text_channels, name="log")
         if log_channel:
+            logger.debug("Complaining to log channel.")
             return log_channel
 
+        logger.debug("Complaining to owner.")
         return guild.owner
 
     async def report_errors(self, guild, title, errors, emoji=None, to=None):
@@ -462,6 +465,10 @@ class AshBot(discord.Client):
         if not to:
             to = self.where_to_complain(guild)
 
+        if not to:
+            logger.error("Can't figure out where to complain to!")
+            return
+            
         for error in errors:
             embed = discord.Embed(
                 color=discord.Color.dark_red(),
