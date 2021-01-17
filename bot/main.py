@@ -198,7 +198,7 @@ class GuildInfo:
         logger.info("Loading config for guild: {}", guild)
         try:
             data = yamale.make_data(ROOT_DIR / f"data/{guild.id}.yaml")
-        except yaml.scanner.ScannerError as e:
+        except Exception as e:
             gi.config_errors.append(str(e))
             return gi
 
