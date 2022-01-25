@@ -34,7 +34,6 @@ ipython = "^8.0.1"
 isort = "^5.7.0"
 mypy = "^0.931"
 pylint = "^2.6.0"
-types-PyYAML = "^6.0.3"
 types-toml = "^0.10.3"
 
 [build-system]
