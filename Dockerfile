@@ -1,4 +1,4 @@
-FROM python:3.9.5-slim-buster
+FROM python:3.9-slim-bullseye
 
 ENV PYTHONUNBUFFERED 1
 
@@ -9,7 +9,7 @@ RUN apt-get update && \
     # Quality of life
     nano htop curl iputils-ping dnsutils \
     # Python dependencies
-    build-essential libpq-dev
+    build-essential
 
 WORKDIR /app
 
