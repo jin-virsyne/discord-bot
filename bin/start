@@ -2,6 +2,6 @@
 DIR=$( dirname "$0" )
 echo "Dir: ${DIR}"
 
-source $HOME/.poetry/env
+# source $HOME/.poetry/env
 cd $DIR/..
-exec poetry run python ${DIR}/../bot/main.py
+exec python -OO -m dragonpaw_bot
