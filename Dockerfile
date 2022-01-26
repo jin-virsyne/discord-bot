@@ -22,3 +22,4 @@ ARG BUILD_TAG
 ENV BUILD_TAG $BUILD_TAG
 
 USER python
+ENTRYPOINT [ "/app/bin/start" ]
