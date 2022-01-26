@@ -19,29 +19,25 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
-        with:
-          submodules: true
-
-      # - name: Setup Python
-      #   uses: actions/setup-python@v2
-      #   with:
-      #     python-version: 3.9.5
 
       - name: Build
         run: |
           export TAG=$(date "+%Y.%m.%d-%H.%M.%S")
           echo "Tag: $TAG"
           echo -n $TAG > .tag
-          docker build . -t ${CONTAINER_IMAGE} --build-arg BUILD_TAG="$TAG"
+          docker build . --file Dockerfile -t ${CONTAINER_IMAGE} \
+            --tag ${CONTAINER_IMAGE}:${TAG} \
+            --tag ${CONTAINER_IMAGE}:latest \
+            --build-arg BUILD_TAG="$TAG"
 
       # - name: Test with pytest
       #   run: docker run ${CONTAINER_IMAGE} pytest
 
-      # - name: Install doctl
-      #   uses: digitalocean/action-doctl@v2
-      #   if: github.event_name == 'push'
-      #   with:
-      #     token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        if: github.event_name == 'push'
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
 
       - name: Login to GitHub Container Registry
         if: github.event_name == 'push'
@@ -51,10 +47,10 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # - name: Setup various credentials
-      #   if: github.event_name == 'push'
-      #   run: |
-      #     doctl kubernetes cluster kubeconfig save $CLUSTER
+      - name: Setup various credentials
+        if: github.event_name == 'push'
+        run: |
+          doctl kubernetes cluster kubeconfig save $CLUSTER
 
       - name: Build & Push
         if: github.event_name == 'push'
@@ -64,8 +60,6 @@ jobs:
           export TAG=$(cat .tag)
 
           # Push some containers
-          docker tag ${CONTAINER_IMAGE} ${CONTAINER_REPO}/${CONTAINER_IMAGE}:latest
-          docker tag ${CONTAINER_IMAGE} ${CONTAINER_REPO}/${CONTAINER_IMAGE}:${TAG}
           docker push ${CONTAINER_REPO}/${CONTAINER_IMAGE}:latest
           docker push ${CONTAINER_REPO}/${CONTAINER_IMAGE}:${TAG}
 
