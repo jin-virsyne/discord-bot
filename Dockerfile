@@ -1,8 +1,9 @@
 FROM python:3.9-slim-bullseye
 
+# Prevents OS buffering of logs to stdout.
 ENV PYTHONUNBUFFERED 1
 
-RUN adduser --system --group python
+RUN adduser --uid 101 --system --group python
 
 RUN apt-get update && \
     apt-get install -y \
