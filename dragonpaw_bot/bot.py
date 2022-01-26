@@ -45,8 +45,7 @@ OAUTH_PERMISSIONS = (
     | hikari.Permissions.KICK_MEMBERS
     | hikari.Permissions.USE_APPLICATION_COMMANDS
 ).value
-CLIENT_ID = 791831545475235860
-CLIENT_ID_TEST = 930665318139953192
+CLIENT_ID = environ["CLIENT_ID"]
 OAUTH_URL = "https://discord.com/api/oauth2/authorize?client_id={CLIENT_ID}&permissions={OAUTH_PERMISSIONS}&scope=applications.commands%20bot"
 INTENTS = (
     hikari.Intents.GUILD_MESSAGES
@@ -71,47 +70,49 @@ class DragonpawBot(lightbulb.BotApp):
 
     def state(self, guild_id: hikari.Snowflake) -> Optional[structs.GuildState]:
         if guild_id not in self._state:
-            state = self.state_load_pickle(guild_id=guild_id)
+            state = state_load_pickle(guild_id=guild_id)
             if state:
                 self._state[guild_id] = state
         return self._state.get(guild_id)
 
     def state_update(self, state: structs.GuildState):
         self._state[state.id] = state
-        self.state_save_pickle(state=state)
-
-    # ---------------------------------------------------------------------------- #
-    #                                 File handling                                #
-    # ---------------------------------------------------------------------------- #
-
-    def state_path(self, guild_id: hikari.Snowflake, extention="toml"):
-        return Path(STATE_DIR, str(guild_id) + "." + extention)
-
-    def state_save_pickle(self, state: structs.GuildState):
-        filename = self.state_path(state.id, extention="pickle")
-        logger.info("G=%r Saving state to: %s", state.name, filename)
-        with safer.open(filename, "wb") as f:
-            pickle.dump(obj=state.dict(), file=f)
-
-    def state_load_pickle(
-        self, guild_id: hikari.Snowflake
-    ) -> Optional[structs.GuildState]:
-        filename = self.state_path(guild_id=guild_id, extention="pickle")
-
-        if not filename.exists():
-            logger.debug("No state file for guild: %d", guild_id)
-            return None
-
-        logger.debug("Loading state from: %s", filename)
-        try:
-            with safer.open(filename, "rb") as f:
-                return structs.GuildState.parse_obj(pickle.load(f))
-        except Exception as e:
-            logger.exception("Error loading file: %r", e)
-            return None
+        state_save_pickle(state=state)
 
 
 bot = DragonpawBot()
+
+# ---------------------------------------------------------------------------- #
+#                                 File handling                                #
+# ---------------------------------------------------------------------------- #
+
+
+def state_path(guild_id: hikari.Snowflake, extention="toml"):
+    return Path(STATE_DIR, str(guild_id) + "." + extention)
+
+
+def state_save_pickle(state: structs.GuildState):
+    filename = state_path(state.id, extention="pickle")
+    logger.info("G=%r Saving state to: %s", state.name, filename)
+    with safer.open(filename, "wb") as f:
+        pickle.dump(obj=state.dict(), file=f)
+
+
+def state_load_pickle(guild_id: hikari.Snowflake) -> Optional[structs.GuildState]:
+    filename = state_path(guild_id=guild_id, extention="pickle")
+
+    if not filename.exists():
+        logger.debug("No state file for guild: %d", guild_id)
+        return None
+
+    logger.debug("Loading state from: %s", filename)
+    try:
+        with safer.open(filename, "rb") as f:
+            return structs.GuildState.parse_obj(pickle.load(f))
+    except Exception as e:
+        logger.exception("Error loading file: %r", e)
+        return None
+
 
 # ---------------------------------------------------------------------------- #
 #                                   Handlers                                   #
@@ -127,7 +128,7 @@ async def on_ready(event: hikari.ShardReadyEvent) -> None:
         OAUTH_URL.format(CLIENT_ID=CLIENT_ID, OAUTH_PERMISSIONS=OAUTH_PERMISSIONS),
     )
     logger.debug(
-        "Use this URL to add the TEST version a server: %s",
+        "Use this URL to add the TEST version to a server: %s",
         OAUTH_URL.format(CLIENT_ID=CLIENT_ID_TEST, OAUTH_PERMISSIONS=OAUTH_PERMISSIONS),
     )
     bot.user = event.my_user
