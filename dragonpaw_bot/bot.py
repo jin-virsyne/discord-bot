@@ -52,14 +52,17 @@ INTENTS = (
     | hikari.Intents.GUILD_EMOJIS
 ).value
 
-TEST_GUILD = environ.get("TEST_GUILD")
+if "TEST_GUILDS" in environ:
+    TEST_GUILDS = [int(x) for x in environ["TEST_GUILD"].split(",")]
+else:
+    TEST_GUILDS = []
 
 
 class DragonpawBot(lightbulb.BotApp):
     def __init__(self):
         super().__init__(
             token=environ["BOT_TOKEN"],
-            default_enabled_guilds=TEST_GUILD,
+            default_enabled_guilds=TEST_GUILDS,
             intents=INTENTS,
         )
         self._state: Dict[hikari.Snowflake, structs.GuildState] = {}
