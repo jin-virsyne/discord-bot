@@ -66,4 +66,4 @@ jobs:
       - name: Deploy to test
         if: github.event_name == 'push'
         run: |
-          kubectl rollout restart --namespace=${NAMESPACE} deploy/$CONTAINER_IMAGE
+          kubectl rollout restart --namespace=${NAMESPACE} deploy/${CONTAINER_IMAGE}-test
