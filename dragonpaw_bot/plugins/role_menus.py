@@ -141,7 +141,8 @@ async def on_reaction_add(event: hikari.GuildReactionAddEvent):
         logger.error("Reaction without an emoji?!: %r", event)
         return
 
-    if event.user_id == plugin.bot.user.id:
+    assert plugin.bot.user_id
+    if event.user_id == plugin.bot.user_id:
         return
 
     assert isinstance(plugin.bot, DragonpawBot)
@@ -221,7 +222,7 @@ async def on_reaction_remove(event: hikari.GuildReactionDeleteEvent):
 
     assert isinstance(plugin.bot, DragonpawBot)
 
-    if event.user_id == plugin.bot.user.id:
+    if event.user_id == plugin.bot.user_id:
         return
 
     c = plugin.bot.state(event.guild_id)
@@ -249,7 +250,7 @@ async def on_reaction_remove(event: hikari.GuildReactionDeleteEvent):
     if cached:
         username = cached.display_name
     else:
-        username = event.user_id
+        username = str(event.user_id)
 
     todo = c.role_emojis[key]
     logger.info(

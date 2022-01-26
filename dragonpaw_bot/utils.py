@@ -1,19 +1,12 @@
 from __future__ import annotations
 
-import datetime
-import io
 import logging
-import pickle
-from os import environ
-from pathlib import Path
-from typing import TYPE_CHECKING, Dict, Mapping, Optional, Sequence, Union
+from typing import TYPE_CHECKING, Mapping, Optional, Sequence, Union
 
 import hikari
 import hikari.messages
-import lightbulb
 from emojis.db.db import EMOJI_DB
 
-from dragonpaw_bot import http, structs
 from dragonpaw_bot.colors import SOLARIZED_RED
 
 if TYPE_CHECKING:
@@ -30,8 +23,9 @@ async def delete_my_messages(
     bot: DragonpawBot, guild_name: str, channel_id: hikari.Snowflake
 ):
     logger.debug("Checking for old messages in channel: %r", channel_id)
+    assert bot.user_id
     async for message in bot.rest.fetch_messages(channel=channel_id):
-        if message.author.id == bot.user.id:
+        if message.author.id == bot.user_id:
             logger.debug("G:%r: Deleting my message: %r", guild_name, message)
             await message.delete()
 

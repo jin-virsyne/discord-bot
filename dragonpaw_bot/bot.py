@@ -1,11 +1,10 @@
 #!/usr/bin/env python
 import datetime
-import io
 import logging
 import pickle
 from os import environ
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, Mapping, Optional, Sequence, Union
+from typing import Dict, Optional
 
 import hikari
 import hikari.messages
@@ -14,10 +13,8 @@ import safer
 import toml
 import uvloop
 from dotenv import load_dotenv
-from emojis.db.db import EMOJI_DB
 
 from dragonpaw_bot import http, structs, utils
-from dragonpaw_bot.colors import SOLARIZED_RED
 from dragonpaw_bot.plugins.lobby import configure_lobby
 from dragonpaw_bot.plugins.role_menus import configure_role_menus
 
@@ -55,24 +52,28 @@ INTENTS = (
     | hikari.Intents.GUILD_EMOJIS
 ).value
 
-DRAGONPAW_GUILD = 216602233083527168
+TEST_GUILD = environ.get("TEST_GUILD")
 
 
 class DragonpawBot(lightbulb.BotApp):
     def __init__(self):
         super().__init__(
             token=environ["BOT_TOKEN"],
-            default_enabled_guilds=DRAGONPAW_GUILD,
+            default_enabled_guilds=TEST_GUILD,
             intents=INTENTS,
         )
         self._state: Dict[hikari.Snowflake, structs.GuildState] = {}
-        self.user: Optional[hikari.OwnUser]
+        self.user_id: Optional[hikari.Snowflake]
 
     def state(self, guild_id: hikari.Snowflake) -> Optional[structs.GuildState]:
+        # If we don't have a state in-memory, maybe there is one on disk?
         if guild_id not in self._state:
             state = state_load_pickle(guild_id=guild_id)
             if state:
+                # If that returned a state, cache it.
                 self._state[guild_id] = state
+
+        # And return whatever is cached, if any...
         return self._state.get(guild_id)
 
     def state_update(self, state: structs.GuildState):
@@ -124,19 +125,15 @@ async def on_ready(event: hikari.ShardReadyEvent) -> None:
     """Post-initalization for the bot."""
     logger.info("Connected to Discord as %r", event.my_user)
     logger.info(
-        "Use this URL to add to a server: %s",
+        "Use this URL to add this bot to a server: %s",
         OAUTH_URL.format(CLIENT_ID=CLIENT_ID, OAUTH_PERMISSIONS=OAUTH_PERMISSIONS),
     )
-    logger.debug(
-        "Use this URL to add the TEST version to a server: %s",
-        OAUTH_URL.format(CLIENT_ID=CLIENT_ID_TEST, OAUTH_PERMISSIONS=OAUTH_PERMISSIONS),
-    )
-    bot.user = event.my_user
+    bot.user_id = event.my_user.id
 
 
 @bot.listen()
 async def on_guild_available(event: hikari.GuildAvailableEvent):
-    state = bot.state(event.guild_id)
+    state = bot.state(guild_id=event.guild_id)
     if state:
         logger.info("G=%r State loaded from disk, resuming services", state.name)
     else:
