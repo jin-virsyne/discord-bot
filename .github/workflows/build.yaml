@@ -26,8 +26,8 @@ jobs:
           echo "Tag: $TAG"
           echo -n $TAG > .tag
           docker build . --file Dockerfile -t ${CONTAINER_IMAGE} \
-            --tag ${CONTAINER_IMAGE}:${TAG} \
-            --tag ${CONTAINER_IMAGE}:latest \
+            --tag ${CONTAINER_REPO}/${CONTAINER_IMAGE}:${TAG} \
+            --tag ${CONTAINER_REPO}/${CONTAINER_IMAGE}:latest \
             --build-arg BUILD_TAG="$TAG"
 
       # - name: Test with pytest
