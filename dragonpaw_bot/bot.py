@@ -28,6 +28,7 @@ uvloop.install()
 ROOT_DIR = Path(__file__).resolve().parent.parent
 STATE_DIR = ROOT_DIR / "state"
 
+# ACTIVITY = "Doing bot things, thinking bot thoughts..."
 VALIDATION_ERROR = (
     "The config for this server failed to pass validation. Below are the errors. "
     "(Please be aware, programmers start counting at 0, so `menus.1.description` "
@@ -64,6 +65,7 @@ class DragonpawBot(lightbulb.BotApp):
             token=environ["BOT_TOKEN"],
             default_enabled_guilds=TEST_GUILDS,
             intents=INTENTS,
+            force_color=True,
         )
         self._state: Dict[hikari.Snowflake, structs.GuildState] = {}
         self.user_id: Optional[hikari.Snowflake]
@@ -132,6 +134,9 @@ async def on_ready(event: hikari.ShardReadyEvent) -> None:
         OAUTH_URL.format(CLIENT_ID=CLIENT_ID, OAUTH_PERMISSIONS=OAUTH_PERMISSIONS),
     )
     bot.user_id = event.my_user.id
+    # await bot.update_presence(
+    #     activity=hikari.Activity(type=hikari.ActivityType.CUSTOM, name=ACTIVITY)
+    # )
 
 
 @bot.listen()
@@ -197,8 +202,10 @@ async def configure_guild(bot: DragonpawBot, guild: hikari.Guild, url: str):
         config_text = await http.get_gist(url)
     else:
         config_text = await http.get_text(url)
-
-    config = config_parse_toml(guild=guild, text=config_text)
+    try:
+        config = config_parse_toml(guild=guild, text=config_text)
+    except toml.decoder.TomlDecodeError as e:
+        return [str(e)]
     role_map = await utils.guild_roles(bot=bot, guild=guild)
 
     errors = []
