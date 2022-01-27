@@ -79,9 +79,14 @@ async def configure_lobby(
         state.lobby_click_for_rules = config.click_for_rules
 
         if config.click_for_rules and config.role:
-            component = plugin.bot.rest.build_action_row()
-            component.add_button(hikari.ButtonStyle.SUCCESS, RULES_AGREED_ID)
-            await channel.send(embed=embed, component=component)
+            row = plugin.bot.rest.build_action_row()
+            (
+                row.add_button(hikari.ButtonStyle.SUCCESS, RULES_AGREED_ID)
+                .set_label("I agree")
+                .set_emoji("✅")
+                .add_to_container()
+            )
+            await channel.send(embed=embed, component=row)
         else:
             await channel.send(embed=embed)
 
@@ -107,11 +112,28 @@ async def on_member_join(plugin: lightbulb.Plugin, event: hikari.MemberCreateEve
 
     # Is there a welcome message?
     if c.lobby_welcome_message and c.lobby_channel_id:
-        msg = c.lobby_welcome_message.format(
-            user=event.user.mention,
-            days=c.lobby_kick_days,
+        try:
+            msg = c.lobby_welcome_message.format(
+                name=event.user.mention,
+                days=c.lobby_kick_days,
+            )
+        except KeyError as e:
+            await utils.report_errors(
+                bot=plugin.bot,
+                guild_id=event.guild_id,
+                error="Welcome message has an unknown substition in it: {}".format(
+                    str(e)
+                ),
+            )
+            return
+
+        await plugin.bot.rest.create_message(
+            channel=c.lobby_channel_id,
+            content=msg,
+            user_mentions=True,
+            role_mentions=True,
+            nonce=event.user_id,
         )
-        await plugin.bot.rest.create_message(channel=c.lobby_channel_id, content=msg)
 
 
 @plugin.listener(event=hikari.InteractionCreateEvent, bind=True)
@@ -123,6 +145,7 @@ async def on_interaction(
         return
     if not event.interaction.guild_id:
         return
+    logger.debug("Interaction event: %r=%r", type(event), event)
 
     assert isinstance(plugin.bot, DragonpawBot)
     c = plugin.bot.state(event.interaction.guild_id)
@@ -142,3 +165,10 @@ async def on_interaction(
             user=event.interaction.user.id,
             role=c.lobby_role_id,
         )
+    await event.interaction.create_initial_response(
+        content="Thank you. Removing your {} role.".format(
+            c.role_names[c.lobby_role_id]
+        ),
+        response_type=hikari.ResponseType.MESSAGE_CREATE,
+        flags=hikari.MessageFlag.EPHEMERAL,
+    )
