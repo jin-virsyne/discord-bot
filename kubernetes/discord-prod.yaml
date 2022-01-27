@@ -25,6 +25,9 @@ spec:
         runAsGroup: 101
         fsGroup: 101
         fsGroupChangePolicy: OnRootMismatch
+      # Used to pull private packages from github. (If needed. Remove otherwise.)
+      # imagePullSecrets:
+      #   - name: regcred
       containers:
         - name: discord-bot-prod
           image: ghcr.io/dragonpaw/discord-bot/discord-bot:stable

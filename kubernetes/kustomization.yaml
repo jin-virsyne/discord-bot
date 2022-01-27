@@ -13,3 +13,7 @@ secretGenerator:
   # - name: discord-bot-prod
   #   envs:
   #     - discord-prod-secrets.env
+  - name: regcred
+    files:
+      - .dockerconfigjson=secret.json
+    type: kubernetes.io/dockerconfigjson

@@ -13,14 +13,16 @@ spec:
       labels:
         pod: sites
     spec:
+      imagePullSecrets:
+        - name: regcred
       containers:
         - name: sites
           image: ghcr.io/dragonpaw/sites/sites:latest
           imagePullPolicy: Always
           resources:
             requests:
-              cpu: 25m
-              memory: 10Mi
+              cpu: 10m
+              memory: 20Mi
             limits:
               cpu: 100m
-              memory: 20Mi
+              memory: 30Mi
