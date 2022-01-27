@@ -123,7 +123,7 @@ async def configure_role_menus(
         # Add the starting reactions
         for o in menu.options:
             e = emoji_map[o.emoji]
-            logger.debug("Adding: %r", e)
+            logger.debug("Adding: %s = %s", e, o.role)
             await message.add_reaction(e)
 
     # The big note at the end.
