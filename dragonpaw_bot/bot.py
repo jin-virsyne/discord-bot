@@ -165,7 +165,7 @@ async def on_guild_join(event: hikari.GuildJoinEvent):
     ephemeral=True,
 )
 @lightbulb.implements(lightbulb.SlashCommand)
-async def setup(ctx: lightbulb.Context) -> None:
+async def config(ctx: lightbulb.Context) -> None:
     if not ctx.guild_id:
         logger.error("Interaction without a guild?!: %r", ctx)
         return
