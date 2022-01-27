@@ -3,7 +3,7 @@ FROM python:3.9-slim-bullseye
 # Prevents OS buffering of logs to stdout.
 ENV PYTHONUNBUFFERED 1
 
-RUN adduser --uid 101 --system --group python
+RUN adduser --uid 101 --system --group python 
 
 RUN apt-get update && \
     apt-get install -y \
@@ -13,13 +13,14 @@ RUN apt-get update && \
     build-essential
 
 WORKDIR /app
+RUN chown python.python /app
+
+USER python
 
 COPY . /app
 RUN /app/bin/install-deps
-RUN chown -R python /app
 
 ARG BUILD_TAG
 ENV BUILD_TAG $BUILD_TAG
 
-USER python
 ENTRYPOINT [ "/app/bin/start" ]
