@@ -5,7 +5,6 @@ resources:
   - namespace.yaml
   - discord-test.yaml
   # - discord-prod.yaml
-  - sites.yaml
 secretGenerator:
   - name: discord-bot-test
     envs:
@@ -13,7 +12,9 @@ secretGenerator:
   # - name: discord-bot-prod
   #   envs:
   #     - discord-prod-secrets.env
-  - name: regcred
-    files:
-      - .dockerconfigjson=secret.json
-    type: kubernetes.io/dockerconfigjson
+
+  # If you're using a private pacakge, uncomment this and add the secret.json file
+  # - name: regcred
+  #   files:
+  #     - .dockerconfigjson=secret.json
+  #   type: kubernetes.io/dockerconfigjson
