@@ -53,7 +53,7 @@ INTENTS = (
 ).value
 
 if "TEST_GUILDS" in environ:
-    TEST_GUILDS = [int(x) for x in environ["TEST_GUILD"].split(",")]
+    TEST_GUILDS = [int(x) for x in environ["TEST_GUILDS"].split(",")]
 else:
     TEST_GUILDS = []
 
