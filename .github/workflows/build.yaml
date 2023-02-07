@@ -8,7 +8,7 @@ on:
   pull_request:
 
 env:
-  CLUSTER: k8s-1-21-3-do-0-sfo2-1631651154202
+  CLUSTER: k8s-main
   CONTAINER_IMAGE: discord-bot
   CONTAINER_REPO: ghcr.io/dragonpaw/discord-bot
   NAMESPACE: ash
@@ -49,8 +49,7 @@ jobs:
 
       - name: Setup various credentials
         if: github.event_name == 'push'
-        run: |
-          doctl kubernetes cluster kubeconfig save $CLUSTER
+        run: doctl kubernetes cluster kubeconfig save $CLUSTER
 
       - name: Build & Push
         if: github.event_name == 'push'
@@ -65,5 +64,4 @@ jobs:
 
       - name: Deploy to test
         if: github.event_name == 'push'
-        run: |
-          kubectl rollout restart --namespace=${NAMESPACE} sts/${CONTAINER_IMAGE}-test
+        run: kubectl rollout restart --namespace=${NAMESPACE} sts/${CONTAINER_IMAGE}-test
