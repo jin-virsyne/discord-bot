@@ -1,5 +1,5 @@
 [roles]
-role_channel = "roles"
+channel = "roles"
 
 [[roles.menu]]
 description = "Please let us know how you identify, in terms of traditional D/s role."
@@ -42,8 +42,8 @@ role = "Nonbinary"
 description = "You may use this role, if you wish, to let people know that you are trans. This is a **completely optional thing**. (If you feel that trans people should be required to 'warn' you that they are trans, please leave this server.)"
 name = "Transitional"
 [[roles.menu.options]]
-emoji=""+1""
 description = "I'm trans. Deal with it."
+emoji = "+1"
 role = "Trans"
 
 [[roles.menu]]
