@@ -77,6 +77,7 @@ async def report_errors(
 ):
     """Dump all the config errors somewhere, where hopefully they get seen."""
 
+    # BUG: This doesn't work on initial setup as there's no state file to read at first
     c = bot.state(guild_id)
     if not c:
         logger.error("Can't report errors on an unknown guild: %r", guild_id)
