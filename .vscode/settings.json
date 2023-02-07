@@ -22,5 +22,13 @@
     "--follow-imports=silent",
     "--show-column-numbers",
     "--show-error-codes"
+  ],
+  "cSpell.words": [
+    "aiohttp",
+    "dotenv",
+    "Dragonpaw",
+    "extention",
+    "hikari",
+    "uvloop"
   ]
 }

@@ -13,13 +13,6 @@ spec:
       labels:
         app: discord-bot-prod
     spec:
-      # initContainers:
-      #   - name: discord-data-permission-fix
-      #     image: busybox
-      #     command: ["/bin/chown", "-R", "101", "/app/state"]
-      #     volumeMounts:
-      #       - name: my-do-volume
-      #         mountPath: /app/state
       securityContext:
         runAsUser: 101
         runAsGroup: 101
