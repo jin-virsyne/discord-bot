@@ -41,6 +41,7 @@ OAUTH_PERMISSIONS = (
     | hikari.Permissions.ADD_REACTIONS
     | hikari.Permissions.KICK_MEMBERS
     | hikari.Permissions.USE_APPLICATION_COMMANDS
+    | hikari.Permissions.INTER
 ).value
 CLIENT_ID = environ["CLIENT_ID"]
 OAUTH_URL = "https://discord.com/api/oauth2/authorize?client_id={CLIENT_ID}&permissions={OAUTH_PERMISSIONS}&scope=applications.commands%20bot"
@@ -161,7 +162,7 @@ async def on_guild_join(event: hikari.GuildJoinEvent):
 
 
 @bot.command
-@lightbulb.add_checks(lightbulb.has_guild_permissions(hikari.Permissions.ADMINISTRATOR))
+@lightbulb.add_checks(lightbulb.has_guild_permissions(hikari.Permissions.MANAGE_ROLES))
 @lightbulb.option("url", "Link to the config you wish to use")
 @lightbulb.command(
     "config",
