@@ -187,14 +187,14 @@ async def config(ctx: lightbulb.Context) -> None:
 # ---------------------------------------------------------------------------- #
 
 
-def config_parse_toml(guild: hikari.Guild, text: str):
+def config_parse_toml(guild: hikari.Guild, text: str) -> structs.GuildConfig:
     logger.info("G=%r Loading TOML config for guild: %r", guild.name, guild)
 
     data = toml.loads(text)
     return structs.GuildConfig.parse_obj(data)
 
 
-async def configure_guild(bot: DragonpawBot, guild: hikari.Guild, url: str):
+async def configure_guild(bot: DragonpawBot, guild: hikari.Guild, url: str) -> None:
     """Load the config for a guild and start setting up everything there."""
 
     if url.startswith("https://gist.github.com"):
@@ -207,6 +207,7 @@ async def configure_guild(bot: DragonpawBot, guild: hikari.Guild, url: str):
         logger.error("Error parsing TOML file: %s", e)
         await utils.report_errors(bot=bot, guild_id=guild.id, error=str(e))
         return
+
     role_map = await utils.guild_roles(bot=bot, guild=guild)
 
     errors = []
