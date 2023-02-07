@@ -204,7 +204,9 @@ async def configure_guild(bot: DragonpawBot, guild: hikari.Guild, url: str):
     try:
         config = config_parse_toml(guild=guild, text=config_text)
     except toml.decoder.TomlDecodeError as e:
-        return [str(e)]
+        logger.error("Error parsing TOML file: %s", e)
+        await utils.report_errors(bot=bot, guild_id=guild.id, error=str(e))
+        return
     role_map = await utils.guild_roles(bot=bot, guild=guild)
 
     errors = []
@@ -228,6 +230,8 @@ async def configure_guild(bot: DragonpawBot, guild: hikari.Guild, url: str):
                 role_map=role_map,
             )
         )
+    else:
+        logger.debug("No roles menus")
 
     if config.lobby:
         errors.extend(
@@ -239,6 +243,8 @@ async def configure_guild(bot: DragonpawBot, guild: hikari.Guild, url: str):
                 role_map=role_map,
             )
         )
+    else:
+        logger.debug("No lobby.")
 
     for e in errors:
         await utils.report_errors(bot=bot, guild_id=guild.id, error=e)
