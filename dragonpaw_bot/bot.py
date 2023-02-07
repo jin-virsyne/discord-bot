@@ -41,7 +41,6 @@ OAUTH_PERMISSIONS = (
     | hikari.Permissions.ADD_REACTIONS
     | hikari.Permissions.KICK_MEMBERS
     | hikari.Permissions.USE_APPLICATION_COMMANDS
-    | hikari.Permissions.INTER
 ).value
 CLIENT_ID = environ["CLIENT_ID"]
 OAUTH_URL = "https://discord.com/api/oauth2/authorize?client_id={CLIENT_ID}&permissions={OAUTH_PERMISSIONS}&scope=applications.commands%20bot"
