@@ -80,6 +80,7 @@ async def report_errors(
     c = bot.state(guild_id)
     if not c:
         logger.error("Can't report errors on an unknown guild: %r", guild_id)
+        logger.warning("Would have said: %s", error)
         return
 
     # Where to boss?
