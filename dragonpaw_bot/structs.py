@@ -1,5 +1,4 @@
 import datetime
-from typing import List, Mapping, Optional, Tuple
 
 import hikari
 import pydantic
@@ -11,10 +10,10 @@ import pydantic
 class LobbyConfig(pydantic.BaseModel):
     channel: str
     click_for_rules: bool = False
-    kick_after_days: Optional[int]
-    role: Optional[str]
-    rules: Optional[str]
-    welcome_message: Optional[str]
+    kick_after_days: int | None
+    role: str | None
+    rules: str | None
+    welcome_message: str | None
 
 
 class RoleMenuOptionConfig(pydantic.BaseModel):
@@ -26,19 +25,19 @@ class RoleMenuOptionConfig(pydantic.BaseModel):
 class RoleMenuConfig(pydantic.BaseModel):
     name: str
     single: bool = False
-    description: Optional[str]
-    options: List[RoleMenuOptionConfig]
+    description: str | None
+    options: list[RoleMenuOptionConfig]
 
 
 class RolesConfig(pydantic.BaseModel):
     channel: str
-    menu: List[RoleMenuConfig]
+    menu: list[RoleMenuConfig]
 
 
 class GuildConfig(pydantic.BaseModel):
-    lobby: Optional[LobbyConfig]
-    roles: Optional[RolesConfig]
-    log_channel: Optional[str]
+    lobby: LobbyConfig | None
+    roles: RolesConfig | None
+    log_channel: str | None
 
 
 # ---------------------------------------------------------------------------- #
@@ -46,7 +45,7 @@ class GuildConfig(pydantic.BaseModel):
 # ---------------------------------------------------------------------------- #
 class RoleMenuOptionState(pydantic.BaseModel):
     add_role_id: hikari.Snowflake
-    remove_role_ids: List[hikari.Snowflake]
+    remove_role_ids: list[hikari.Snowflake]
 
 
 class GuildState(pydantic.BaseModel):
@@ -57,18 +56,18 @@ class GuildState(pydantic.BaseModel):
     # config_size: int
     config_last: datetime.datetime
 
-    lobby_role_id: Optional[hikari.Snowflake] = None
-    lobby_welcome_message: Optional[str] = None
-    lobby_channel_id: Optional[hikari.Snowflake] = None
+    lobby_role_id: hikari.Snowflake | None = None
+    lobby_welcome_message: str | None = None
+    lobby_channel_id: hikari.Snowflake | None = None
     lobby_click_for_rules: bool = False
     lobby_kick_days: int = 0
     lobby_rules: str = ""
-    lobby_rules_message_id: Optional[hikari.Snowflake] = None
+    lobby_rules_message_id: hikari.Snowflake | None = None
 
     # Role management
-    role_channel_id: Optional[hikari.Snowflake] = None
+    role_channel_id: hikari.Snowflake | None = None
     # Key is (meddage.id,emoji)
-    role_emojis: Mapping[Tuple[hikari.Snowflake, str], RoleMenuOptionState]
-    role_names: Mapping[hikari.Snowflake, str]
+    role_emojis: dict[tuple[hikari.Snowflake, str], RoleMenuOptionState]
+    role_names: dict[hikari.Snowflake, str]
 
-    log_channel_id: Optional[hikari.Snowflake] = None
+    log_channel_id: hikari.Snowflake | None = None

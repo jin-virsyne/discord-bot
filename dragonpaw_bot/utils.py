@@ -47,7 +47,6 @@ async def guild_channel_by_name(
 async def guild_emojis(
     bot: DragonpawBot, guild: hikari.Guild
 ) -> Mapping[str, Union[hikari.KnownCustomEmoji, hikari.UnicodeEmoji]]:
-
     emoji_map: dict[str, Union[hikari.KnownCustomEmoji, hikari.UnicodeEmoji]] = {}
 
     # Load the custom emojis from the guild

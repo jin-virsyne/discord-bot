@@ -4,21 +4,20 @@ import logging
 import pickle
 from os import environ
 from pathlib import Path
-from typing import Dict, Optional
 
+import dotenv
 import hikari
 import hikari.messages
 import lightbulb
 import safer
 import toml
 import uvloop
-from dotenv import load_dotenv
 
 from dragonpaw_bot import http, structs, utils
 from dragonpaw_bot.plugins.lobby import configure_lobby
 from dragonpaw_bot.plugins.role_menus import configure_role_menus
 
-load_dotenv()
+dotenv.load_dotenv()
 
 logging.getLogger("dragonpaw_bot").setLevel(logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -37,8 +36,8 @@ VALIDATION_ERROR = (
 OAUTH_PERMISSIONS = (
     hikari.Permissions.SEND_MESSAGES
     | hikari.Permissions.MANAGE_ROLES
-    | hikari.Permissions.MANAGE_MESSAGES
-    | hikari.Permissions.READ_MESSAGE_HISTORY
+    # | hikari.Permissions.MANAGE_MESSAGES
+    | hikari.Permissions.READ_MESSAGE_HISTORY  # Needed to find own old messages
     | hikari.Permissions.ADD_REACTIONS
     | hikari.Permissions.KICK_MEMBERS
     | hikari.Permissions.USE_APPLICATION_COMMANDS
@@ -67,10 +66,10 @@ class DragonpawBot(lightbulb.BotApp):
             intents=INTENTS,
             force_color=True,
         )
-        self._state: Dict[hikari.Snowflake, structs.GuildState] = {}
-        self.user_id: Optional[hikari.Snowflake]
+        self._state: dict[hikari.Snowflake, structs.GuildState] = {}
+        self.user_id: hikari.Snowflake | None
 
-    def state(self, guild_id: hikari.Snowflake) -> Optional[structs.GuildState]:
+    def state(self, guild_id: hikari.Snowflake) -> structs.GuildState | None:
         # If we don't have a state in-memory, maybe there is one on disk?
         if guild_id not in self._state:
             state = state_load_pickle(guild_id=guild_id)
@@ -104,7 +103,7 @@ def state_save_pickle(state: structs.GuildState):
         pickle.dump(obj=state.dict(), file=f)
 
 
-def state_load_pickle(guild_id: hikari.Snowflake) -> Optional[structs.GuildState]:
+def state_load_pickle(guild_id: hikari.Snowflake) -> structs.GuildState | None:
     filename = state_path(guild_id=guild_id, extention="pickle")
 
     if not filename.exists():
@@ -127,7 +126,7 @@ def state_load_pickle(guild_id: hikari.Snowflake) -> Optional[structs.GuildState
 
 @bot.listen()
 async def on_ready(event: hikari.ShardReadyEvent) -> None:
-    """Post-initalization for the bot."""
+    """Post-initialization for the bot."""
     logger.info("Connected to Discord as %r", event.my_user)
     logger.info(
         "Use this URL to add this bot to a server: %s",

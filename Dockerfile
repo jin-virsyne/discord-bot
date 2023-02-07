@@ -1,4 +1,4 @@
-FROM python:3.9-slim-bullseye
+FROM python:3.10-slim
 
 # Prevents OS buffering of logs to stdout.
 ENV PYTHONUNBUFFERED 1

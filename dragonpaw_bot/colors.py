@@ -1,5 +1,3 @@
-from typing import List, Tuple
-
 import hikari
 import palettable
 
@@ -23,7 +21,7 @@ SOLARIZED_GREEN = hikari.Color.from_hex_code("#859900")
 COLORS = "Cube1_{}"  # https://jiffyclub.github.io/palettable/
 
 
-def rainbow(n: int) -> List[Tuple[int, int, int]]:
+def rainbow(n: int) -> list[tuple[int, int, int]]:
     # This is how to do it using only colorsys, but the colors are not as nice.
     # end = 2 / 3
     # as_float = [colorsys.hls_to_rgb(end * i / (n - 1), 0.5, 1) for i in range(n)]
