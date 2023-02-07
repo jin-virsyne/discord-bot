@@ -4,14 +4,14 @@ namespace: ash
 resources:
   - namespace.yaml
   - discord-test.yaml
-  # - discord-prod.yaml
+  - discord-prod.yaml
 secretGenerator:
   - name: discord-bot-test
     envs:
       - discord-test-secrets.env
-  # - name: discord-bot-prod
-  #   envs:
-  #     - discord-prod-secrets.env
+  - name: discord-bot-prod
+    envs:
+      - discord-prod-secrets.env
 
   # If you're using a private pacakge, uncomment this and add the secret.json file
   # - name: regcred

@@ -23,7 +23,7 @@ spec:
       #   - name: regcred
       containers:
         - name: discord-bot-prod
-          image: ghcr.io/dragonpaw/discord-bot/discord-bot:stable
+          image: ghcr.io/dragonpaw/discord-bot/discord-bot:2023.02.07-02.41.37
           command:
             - /app/bin/start
           resources:
