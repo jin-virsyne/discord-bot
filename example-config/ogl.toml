@@ -1,8 +1,8 @@
 [lobby]
 channel = "unverified"
 kick_after_days = 10
-role = "Unvalidated"
-welcome_message = "Welcome to our server {name}!"
+role = "Unverified"
+welcome_message = "Welcome to our server {name}! You will need to check out how to do #verification if you want to see the rest of the server. And you can find a lot about this place and our unique views on kink in #about."
 
 [roles]
 channel = "roles"
