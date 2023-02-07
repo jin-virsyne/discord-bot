@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, List, Mapping
 
 import hikari
 import lightbulb
+
 from dragonpaw_bot import structs, utils
 from dragonpaw_bot.colors import SOLARIZED_BLUE
 
@@ -32,7 +33,6 @@ async def configure_lobby(
     state: structs.GuildState,
     role_map: Mapping[str, hikari.Role],
 ) -> List[str]:
-
     errors: List[str] = []
 
     # Where is the lobby
@@ -79,7 +79,7 @@ async def configure_lobby(
         state.lobby_click_for_rules = config.click_for_rules
 
         if config.click_for_rules and config.role:
-            row = plugin.bot.rest.build_action_row()
+            row = plugin.bot.rest.build_message_action_row()
             (
                 row.add_button(hikari.ButtonStyle.SUCCESS, RULES_AGREED_ID)
                 .set_label("I agree")
@@ -121,7 +121,7 @@ async def on_member_join(plugin: lightbulb.Plugin, event: hikari.MemberCreateEve
             await utils.report_errors(
                 bot=plugin.bot,
                 guild_id=event.guild_id,
-                error="Welcome message has an unknown substition in it: {}".format(
+                error="Welcome message has an unknown substitution in it: {}".format(
                     str(e)
                 ),
             )
@@ -140,7 +140,6 @@ async def on_member_join(plugin: lightbulb.Plugin, event: hikari.MemberCreateEve
 async def on_interaction(
     plugin: lightbulb.Plugin, event: hikari.InteractionCreateEvent
 ):
-
     if not isinstance(event.interaction, hikari.ComponentInteraction):
         return
     if not event.interaction.guild_id:
@@ -155,7 +154,7 @@ async def on_interaction(
 
     if event.interaction.custom_id == RULES_AGREED_ID and c.lobby_role_id:
         logger.info(
-            "G:%s U:%s agreeded to the rules, they are %s no more.",
+            "G:%s U:%s agreed to the rules, they are %s no more.",
             c.name,
             event.interaction.user.username,
             c.role_names[c.lobby_role_id],
@@ -165,10 +164,10 @@ async def on_interaction(
             user=event.interaction.user.id,
             role=c.lobby_role_id,
         )
-    await event.interaction.create_initial_response(
-        content="Thank you. Removing your {} role.".format(
-            c.role_names[c.lobby_role_id]
-        ),
-        response_type=hikari.ResponseType.MESSAGE_CREATE,
-        flags=hikari.MessageFlag.EPHEMERAL,
-    )
+        await event.interaction.create_initial_response(
+            content="Thank you. Removing your {} role.".format(
+                c.role_names[c.lobby_role_id]
+            ),
+            response_type=hikari.ResponseType.MESSAGE_CREATE,
+            flags=hikari.MessageFlag.EPHEMERAL,
+        )
