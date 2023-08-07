@@ -90,6 +90,7 @@ async def configure_lobby(
         else:
             await channel.send(embed=embed)
 
+    logger.info("G=%r Configured lobby channel %s", guild.name, config.channel)
     return errors
 
 
