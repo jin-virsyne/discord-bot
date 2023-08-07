@@ -3,7 +3,7 @@ FROM python:3.10-slim
 # Prevents OS buffering of logs to stdout.
 ENV PYTHONUNBUFFERED 1
 
-RUN adduser --uid 101 --system --group python 
+RUN adduser --uid 101 --system --group python --home /app
 
 RUN apt-get update && \
     apt-get install -y \
