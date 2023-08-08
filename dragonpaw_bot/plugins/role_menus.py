@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, List, Mapping
 
 import hikari
 import lightbulb
+
 from dragonpaw_bot import structs, utils
 from dragonpaw_bot.colors import rainbow
 
@@ -18,7 +19,8 @@ ROLE_NOTE = (
     "Please click/tap on the reactions above to pick the roles you'd like. "
     "Doing so will add those server roles to you.\n"
     "_ _\n"
-    "**Note:** From time to time these messages will be deleted, when roles are updated."
+    "**Note:** From time to time these messages will be deleted, when roles are "
+    "updated."
     "You do not need to re-select roles to keep them."
 )
 SINGLE_ROLE_MENU = (

@@ -210,7 +210,6 @@ async def configure_guild(bot: DragonpawBot, guild: hikari.Guild, url: str) -> N
 
     role_map = await utils.guild_roles(bot=bot, guild=guild)
 
-    errors = []
     state = structs.GuildState(
         id=guild.id,
         name=guild.name,
@@ -222,36 +221,36 @@ async def configure_guild(bot: DragonpawBot, guild: hikari.Guild, url: str) -> N
 
     # Start setting up the guild
     if config.roles:
-        errors.extend(
-            await configure_role_menus(
-                bot=bot,
-                guild=guild,
-                config=config.roles,
-                state=state,
-                role_map=role_map,
-            )
+        errors = await configure_role_menus(
+            bot=bot,
+            guild=guild,
+            config=config.roles,
+            state=state,
+            role_map=role_map,
         )
+        for e in errors:
+            logger.error("Error setting up role menus: %r", e)
+            await utils.report_errors(bot=bot, guild_id=guild.id, error=e)
     else:
         logger.debug("No roles menus")
 
     if config.lobby:
-        errors.extend(
-            await configure_lobby(
-                bot=bot,
-                guild=guild,
-                config=config.lobby,
-                state=state,
-                role_map=role_map,
-            )
+        errors = await configure_lobby(
+            bot=bot,
+            guild=guild,
+            config=config.lobby,
+            state=state,
+            role_map=role_map,
         )
+        for e in errors:
+            logger.error("Error setting up lobby: %r", e)
+            await utils.report_errors(bot=bot, guild_id=guild.id, error=e)
     else:
         logger.debug("No lobby.")
 
-    for e in errors:
-        await utils.report_errors(bot=bot, guild_id=guild.id, error=e)
-
     # logger.debug("Final state: %r", state)
     bot.state_update(state)
+    logger.info("G=%r Configured guild.", guild.name)
 
 
 bot.load_extensions("dragonpaw_bot.plugins.lobby")

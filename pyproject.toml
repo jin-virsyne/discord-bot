@@ -2,7 +2,7 @@
 check_untyped_defs = true
 ignore_errors = false
 ignore_missing_imports = true
-python_version = "3.9"
+python_version = "3.10"
 strict_optional = true
 warn_redundant_casts = true
 warn_unused_configs = true
@@ -16,18 +16,18 @@ name = "dragonpaw-bot"
 version = "2.0.0"
 
 [tool.poetry.dependencies]
-aiohttp = "^3.8.3" 
-emojis = "^0.7.0" 
-hikari = {extras = ["speedups"], version = "^2.0.0.dev116"} 
-hikari-lightbulb = "^2.3.1" 
-palettable = "^3.3.0" 
-pydantic = "^1.10.4" 
-python = "^3.9.4,<3.11" 
-python-dotenv = "^0.21.1" 
-safer = "^4.4.1" 
-setuptools = "^67.1.0" # Neded by palettable
-toml = "^0.10.2" 
-uvloop = "^0.17.0" 
+aiohttp = "^3.8.3"
+emojis = "^0.7.0"
+hikari = { extras = ["speedups"], version = "^2.0.0.dev116" }
+hikari-lightbulb = "^2.3.1"
+palettable = "^3.3.0"
+pydantic = "^1.10.4"
+python = "^3.9.4,<3.11"
+python-dotenv = "^0.21.1"
+safer = "^4.4.1"
+setuptools = "^67.1.0"                                        # Neded by palettable
+toml = "^0.10.2"
+uvloop = "^0.17.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.1.0"
